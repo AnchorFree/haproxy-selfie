@@ -1,0 +1,58 @@
+---
+apiVersion: apps/v1beta1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: {{ .Release.Name }}
+    chart: {{ .Chart.Name }}-{{ .Chart.Version }}
+    release: {{ .Release.Name }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: {{ .Release.Name }}
+      release: {{ .Release.Name }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Release.Name }}
+        release: {{ .Release.Name }}
+      annotations:
+        checksum/config: {{ include (print $.Template.BasePath "/configmaps.yaml") . |  sha256sum  }}
+    spec:
+      tolerations:
+{{ toYaml .Values.tolerations | indent 8 }}
+      affinity:
+        nodeAffinity:
+{{ toYaml .Values.nodeAffinity | indent 10 }}
+      containers:
+      - name: haproxy-selfie
+        image: {{ .Values.image }}
+        env:
+        - name: HAPROXY_METRICS_PORT
+          value: {{ .Values.metricsPort }}
+        - name: HAPROXY_HTTP_PORT
+          value: {{ .Values.httpPort }}
+        - name: HAPROXY_HTTPS_PORT
+          value: {{ .Values.httpsPort }}
+        ports:
+        - containerPort: {{ .Values.metricsPort }}
+          name: metrics
+        - containerPort: {{ .Values.httpPort }}
+          name: http
+        - containerPort: {{ .Values.httpsPort }}
+          name: https
+        volumeMounts:
+        - name: haproxy-config
+          mountPath: /etc/haproxy/conf
+        - name: lua-config
+          mountPath: /etc/haproxy/user
+      volumes:
+      - name: haproxy-config
+        configMap:
+          name: {{ .Release.Name }}-config
+      - name: lua-config
+        configMap:
+          name: {{ .Release.Name }}-lua

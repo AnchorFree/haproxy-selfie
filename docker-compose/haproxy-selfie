@@ -1,0 +1,15 @@
+---
+version: '2'
+services:
+  haproxy-selfie:
+    image: "anchorfree/haproxy-selfie:v0.1.1"
+    container_name: haproxy-selfie
+    restart: always
+    environment:
+      HAPROXY_METRICS_PORT: 9101
+      HAPROXY_HTTP_PORT: 80
+      HAPROXY_TIMEOUT_CONNECT: "5000ms"
+      HAPROXY_TIMEOUT_SERVER: "10000ms"
+      HAPROXY_TIMEOUT_CLIENT: "15000ms"
+    volumes:
+    - "/etc/haproxy/conf:/etc/haproxy/conf"

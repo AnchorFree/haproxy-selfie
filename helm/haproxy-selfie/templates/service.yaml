@@ -1,0 +1,41 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: {{ .Release.Name }}
+    chart: {{ .Chart.Name }}-{{ .Chart.Version }}
+    release: {{ .Release.Name }}
+  name: {{ .Release.Name }}
+  namespace: {{ .Release.Namespace }}
+spec:
+  ports:
+    - name: http
+      port: {{ .Values.httpPort }}
+      protocol: TCP
+
+    - name: https
+      port: {{ .Values.httpsPort }}
+      protocol: TCP
+
+  selector:
+    app: {{ .Release.Name }}
+    release: {{ .Release.Name }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Release.Name }}-metrics
+  labels:
+    app: {{ .Release.Name }}
+    release: {{ .Release.Name }}
+    service: metrics
+spec:
+  type: ClusterIP
+  selector:
+    app: {{ .Release.Name }}
+    release: {{ .Release.Name }}
+  ports:
+    - name: metrics
+      protocol: TCP
+      port: {{ .Values.metricsPort }}

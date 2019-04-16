@@ -1,0 +1,15 @@
+image: "anchorfree/haproxy-selfie:v0.1.1"
+resources:
+  limits:
+    memory: "100Mi"
+
+tolerations: []
+nodeAffinity: {}
+
+httpPort: 80
+httpsPort: 443
+metricsPort: 9101
+
+mainConfig: ""
+luaScript: ""
+cert: ""
