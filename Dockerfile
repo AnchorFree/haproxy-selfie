@@ -13,4 +13,4 @@ COPY lua/metrics.lua /etc/haproxy/system/
 COPY cfg/builtin.cfg /etc/haproxy/
 
 ENTRYPOINT ["/usr/local/sbin/haproxy"]
-CMD [ "-W", "-db", "-f", "/etc/haproxy/builtin.cfg", "--", "/etc/haproxy/conf" ]
+CMD [ "-W", "-f", "/etc/haproxy/builtin.cfg", "--", "/etc/haproxy/conf" ]
