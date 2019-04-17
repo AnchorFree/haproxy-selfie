@@ -13,3 +13,4 @@ services:
       HAPROXY_TIMEOUT_CLIENT: "15000ms"
     volumes:
     - "/etc/haproxy/conf:/etc/haproxy/conf"
+    - "/etc/haproxy/user:/etc/haproxy/user"
