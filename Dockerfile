@@ -9,7 +9,7 @@ ENV HAPROXY_TIMEOUT_SERVER "10000ms"
 ENV HAPROXY_TIMEOUT_CLIENT "15000ms"
 
 RUN apk add --no-cache ca-certificates openssl && mkdir -p /etc/haproxy/system /etc/haproxy/user /etc/haproxy/conf
-COPY lua/metrics.lua /etc/haproxy/system/
+COPY lua/*.lua /etc/haproxy/system/
 COPY cfg/builtin.cfg /etc/haproxy/
 
 ENTRYPOINT ["/usr/local/sbin/haproxy"]
