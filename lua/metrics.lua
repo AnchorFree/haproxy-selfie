@@ -144,7 +144,7 @@ prom.get_type = function(mtype)
     elseif mtype:match(prom.types.gauge) then
         return "gauge"
     end
-    return "unknown"
+    return "untyped"
 
 end
 
@@ -208,6 +208,7 @@ metrics = function(applet)
    response:add(servers:dump())
    applet:set_status(200)
    applet:add_header("content-type", "text/plain")
+   applet:add_header("content-encoding", "gzip")
    applet:start_response()
    applet:send(response:dump())
 
