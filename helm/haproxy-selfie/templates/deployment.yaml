@@ -32,11 +32,11 @@ spec:
         image: {{ .Values.image }}
         env:
         - name: HAPROXY_METRICS_PORT
-          value: {{ .Values.metricsPort }}
+          value: {{ .Values.metricsPort | quote }}
         - name: HAPROXY_HTTP_PORT
-          value: {{ .Values.httpPort }}
+          value: {{ .Values.httpPort | quote }}
         - name: HAPROXY_HTTPS_PORT
-          value: {{ .Values.httpsPort }}
+          value: {{ .Values.httpsPort | quote }}
         ports:
         - containerPort: {{ .Values.metricsPort }}
           name: metrics
