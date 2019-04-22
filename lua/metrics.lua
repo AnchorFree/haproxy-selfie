@@ -2,7 +2,7 @@
 prom = dofile("/etc/haproxy/system/prometheus.lua")
 
 -- the interval for refreshing proxies stats, in seconds.
-metrics_refresh_interval = 5
+metrics_refresh_interval = tonumber(os.getenv("HAPROXY_METRICS_REFRESH_INTERVAL")) or 5
 
 -- stats table holds the current metrics table, which
 -- is refreshed periodically by metrics_updater.
@@ -78,7 +78,7 @@ metrics = function(applet)
    response:add(servers:dump())
    applet:set_status(200)
    applet:add_header("content-type", "text/plain")
-   applet:add_header("content-encoding", "gzip")
+   applet:add_header("content-length", string.len(response:dump()))
    applet:start_response()
    applet:send(response:dump())
 
