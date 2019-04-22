@@ -1,0 +1,6 @@
+[submodule "lua/libs/http"]
+	path = lua/libs/http
+	url = https://github.com/haproxytech/haproxy-lua-http.git
+[submodule "lua/libs/json"]
+	path = lua/libs/json
+	url = https://github.com/rxi/json.lua.git
