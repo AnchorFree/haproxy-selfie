@@ -116,6 +116,7 @@ prom.build_metrics = function(prom, variant)
             for proxy_id, metrics in pairs(stats.metrics[variant]) do
                 local labels = predefined_labels
                 if variant == "server" then
+                    labels.addr = metrics.addr
                     labels.server = metrics.svname
                     labels.backend = metrics.pxname
                 else
