@@ -1,24 +1,22 @@
 -- include prometheus related code
 prom = dofile("/etc/haproxy/system/prometheus.lua")
 
--- the interval for refreshing proxies stats, in seconds.
-metrics_refresh_interval = tonumber(os.getenv("HAPROXY_METRICS_REFRESH_INTERVAL")) or 5
-
 -- stats table holds the current metrics table, which
 -- is refreshed periodically by metrics_updater.
 -- It also has some methods to get and parse the metrics.
 stats = { metrics = {} }
+stats.refresh_interval = tonumber(os.getenv("HAPROXY_STATS_REFRESH_INTERVAL")) or 5
+stats.socket = os.getenv("HAPROXY_STATS_SOCKET_PATH") or "/var/run/haproxy.sock"
 
--- get_typed_stats fetches raw stats from the stat socket.
-stats.get_typed_stats = function()
+stats.socket_cmd = function(cmd)
 
     local socket = core.tcp()
     socket:settimeout(1)
-    socket:connect("/var/run/haproxy.sock")
-    socket:send("show stat typed\n")
-    local stats_raw, err = socket:receive("*a")
+    socket:connect(stats.socket)
+    socket:send(cmd)
+    local resp, err = socket:receive("*a")
     socket:close()
-    return stats_raw
+    return resp, err
 
 end
 
@@ -84,21 +82,21 @@ metrics = function(applet)
 
 end
 
--- metrics_updater updates stats.metrics
--- table each metrics_refresh_interval seconds.
-metrics_updater = function()
+-- stats.updater updates stats.metrics
+-- table each refresh_interval seconds.
+stats.updater = function()
 
-    stats_raw = stats.get_typed_stats()
+    local stats_raw = stats.socket_cmd("show stat typed\n")
     stats.metrics = stats.build_metrics_table(stats_raw)
 
     while true do
-        core.sleep(metrics_refresh_interval)
-        stats_raw = stats.get_typed_stats()
+        core.sleep(stats.refresh_interval)
+        stats_raw = stats.socket_cmd("show stat typed\n")
         stats.metrics = stats.build_metrics_table(stats_raw)
     end
 
 end
 
-core.register_task(metrics_updater)
+core.register_task(stats.updater)
 core.register_service("metrics", "http", metrics)
 

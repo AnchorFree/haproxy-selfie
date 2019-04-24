@@ -53,10 +53,12 @@ Comparison with HAProxy exporter
 There is already [HAProxy Exporter](https://github.com/prometheus/haproxy_exporter), so why use `haproxy-selfie` instead?
 
 * You don't need to configure and run an external process alongside HAProxy.
-* You don't need to expose a TCP stats port for HAProxy Exporter. `haproxy-selfie` still
-[uses](TODO.md) stats socket, but the socket does not need to be exposed externally. 
 * [HAProxy Exporter](https://github.com/prometheus/haproxy_exporter/issues/30) exports a bunch of metrics with incorrect type (`gauge` instead of `counter`).
 The issue has been there for a while. `haproxy-selfie` uses internal HAProxy information about metric types and just translates it into prometheus types.
+* Although `haproxy-selfie` still [uses](TODO.md) HAProxy stats socket, the only reason for that is to get 
+metric types directly from HAProxy. Version `v0.0.1` has metric types hardcoded, so it does not need the socket. 
+If eventually HAProxy metric types get exposed to Lua (something like `Proxy.get_stats_typed()`), there won't be any 
+need in exposing the stat socket at all.
 
 Exported metrics
 ----------------
