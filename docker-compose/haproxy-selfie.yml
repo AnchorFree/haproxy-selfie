@@ -2,7 +2,7 @@
 version: '2'
 services:
   haproxy-selfie:
-    image: "anchorfree/haproxy-selfie:v0.1.4"
+    image: "anchorfree/haproxy-selfie:v0.2.0"
     container_name: haproxy-selfie
     restart: always
     environment:

@@ -46,14 +46,15 @@ stats.build_metrics_table = function (stats_raw)
     for s in stats_raw:gmatch("[^\r\n]+") do
 
         local f1, metric_type, metric_value = s:match("([^:]+):([^:]+:[^:]+):([^:]+)")
-        local proxy_id, _, metric_name = f1:match("([LFBS]%.[^.]+%.[^.]+)%.([^.]+)%.([^.]+).*")
-        local variant = stats.get_variant(proxy_id)
+        if f1 then
+            local proxy_id, _, metric_name = f1:match("([LFBS]%.[^.]+%.[^.]+)%.([^.]+)%.([^.]+).*")
+            local variant = stats.get_variant(proxy_id)
 
-        metrics[variant] = metrics[variant] or {}
-        metrics[variant][proxy_id] = metrics[variant][proxy_id] or {}
-        metrics[variant][proxy_id][metric_name] = metric_value
-
-        metrics.has[variant][metric_name] = metrics.has[variant][metric_name] or metric_type
+            metrics[variant] = metrics[variant] or {}
+            metrics[variant][proxy_id] = metrics[variant][proxy_id] or {}
+            metrics[variant][proxy_id][metric_name] = metric_value
+            metrics.has[variant][metric_name] = metrics.has[variant][metric_name] or metric_type
+        end
     end
     return metrics
 
@@ -86,13 +87,21 @@ end
 -- table each refresh_interval seconds.
 stats.updater = function()
 
-    local stats_raw = stats.socket_cmd("show stat typed\n")
-    stats.metrics = stats.build_metrics_table(stats_raw)
+    local stats_raw, err = stats.socket_cmd("show stat typed\n")
+    if err ~= nil then
+        core.log(core.err, "Error getting stats from the socket: "..err)
+    else
+        stats.metrics = stats.build_metrics_table(stats_raw)
+    end
 
     while true do
         core.sleep(stats.refresh_interval)
-        stats_raw = stats.socket_cmd("show stat typed\n")
-        stats.metrics = stats.build_metrics_table(stats_raw)
+        local stats_raw, err = stats.socket_cmd("show stat typed\n")
+        if err ~= nil then
+            core.log(core.err, "Error getting stats from the socket: "..err)
+        else
+            stats.metrics = stats.build_metrics_table(stats_raw)
+        end
     end
 
 end
