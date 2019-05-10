@@ -449,7 +449,7 @@ function M.send(method, t)
                 local chunk, err = M.receive_chunk(socket)
                 if not chunk then
                     socket:close()
-                    return nil, "http." .. method:lower() .. ": Receive error (headers): "  .. err
+                    return nil, "http." .. method:lower() .. ": Receive error (content): "  .. err
                 else
                     if chunk ~= "" then
                         chunks:add(chunk)
@@ -469,6 +469,11 @@ function M.send(method, t)
     end
 end
 
+--- Reads one chunk from a HTTP response
+--
+-- @param socket socket ojbect (with already established tcp connection)
+--
+-- @return chunk recieved chunk or nil and an error message
 M.receive_chunk = function(socket)
 
     local length, err = socket:receive("*l")
@@ -482,7 +487,7 @@ M.receive_chunk = function(socket)
             return chunk
         end
     end
-    return nil, "http." .. method:lower() .. ": Receive error (headers): "  .. err
+    return nil, "http." .. method:lower() .. ": Chunk receive error: "  .. err
 
 end
 
