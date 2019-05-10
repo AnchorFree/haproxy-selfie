@@ -47,6 +47,13 @@ prom = {
     rtime = "response_time_average",
     qtime = "queue_time_average",
     ttime = "session_time_average",
+    status = { "up", function(metric)
+                        local _, regex = Regex.new("^(UP|no check).*", true)
+                        if regex:exec(metric) then
+                            return 1
+                        end
+                        return 0
+                     end },
     hrsp_1xx = { "http_responses_total", { code = "1xx" }},
     hrsp_2xx = { "http_responses_total", { code = "2xx" }},
     hrsp_3xx = { "http_responses_total", { code = "3xx" }},
@@ -103,10 +110,16 @@ prom.build_metrics = function(prom, variant)
 
             local translation = ""
             local predefined_labels = {}
+            local translation_func
+
             if type(t) == "table" then
                 translation = t[1]
-                for k,v in pairs(t[2]) do
-                    predefined_labels[k] = v
+                if type(t[2]) == "function" then
+                    translation_func = t[2]
+                else
+                    for k,v in pairs(t[2]) do
+                        predefined_labels[k] = v
+                    end
                 end
             else
                 translation = t
@@ -123,7 +136,11 @@ prom.build_metrics = function(prom, variant)
                     labels[variant] = metrics.pxname
                 end
                 if metrics[n] then
-                    response:add(prom.prefix.."_"..variant.."_"..translation.."{"..prom.build_labels(labels).."} "..metrics[n].."\n")
+                    local metric_value = metrics[n]
+                    if translation_func then
+                        metric_value = translation_func(metric_value)
+                    end
+                    response:add(prom.prefix.."_"..variant.."_"..translation.."{"..prom.build_labels(labels).."} "..metric_value.."\n")
                 end
             end
         end
