@@ -41,7 +41,7 @@ end
 -- populated with metrics parsed from stats_raw.
 stats.build_metrics_table = function (stats_raw)
 
-    local metrics = { has = { listener = {}, frontend = {}, backend = {}, server = {} }, bySrvAddr = {}, bySrvName = {} }
+    local metrics = { has = { listener = {}, frontend = {}, backend = {}, server = {} }, by_srv_addr = {}, by_srv_name = {} }
 
     for s in stats_raw:gmatch("[^\r\n]+") do
 
@@ -57,8 +57,8 @@ stats.build_metrics_table = function (stats_raw)
         end
     end
     for id, m in pairs(metrics.server) do
-        metrics.bySrvAddr[m.addr] = id
-        metrics.bySrvName[m.svname] = id
+        metrics.by_srv_addr[m.addr] = id
+        metrics.by_srv_name[m.svname] = id
     end
     return metrics
 
