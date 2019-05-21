@@ -1,17 +1,22 @@
--- include prometheus related code
+-- include Prometheus related code
 prom = dofile("/etc/haproxy/system/prometheus.lua")
 
 -- stats table holds the current metrics table, which
--- is refreshed periodically by metrics_updater.
--- It also has some methods to get and parse the metrics.
-stats = { metrics = {} }
-stats.refresh_interval = tonumber(os.getenv("HAPROXY_STATS_REFRESH_INTERVAL")) or 5
-stats.socket = os.getenv("HAPROXY_STATS_SOCKET_PATH") or "/var/run/haproxy.sock"
+-- is refreshed periodically by stats.updater.
+-- It also has a bunch of methods to get and parse the metrics.
+stats = {
+    refresh_interval = tonumber(os.getenv("HAPROXY_STATS_REFRESH_INTERVAL")) or 5,
+    socket = os.getenv("HAPROXY_STATS_SOCKET_PATH") or "/var/run/haproxy.sock",
+    socket_timeout = os.getenv("HAPROXY_STATS_SOCKET_TIMEOUT") or 5,
+    metrics = {}
+}
 
+-- socket_cmd is an auxiliary function to send arbitary
+-- commands to the HAProxy management socket.
 stats.socket_cmd = function(cmd)
 
     local socket = core.tcp()
-    socket:settimeout(1)
+    socket:settimeout(stats.socket_timeout)
     socket:connect(stats.socket)
     socket:send(cmd)
     local resp, err = socket:receive("*a")
@@ -20,20 +25,13 @@ stats.socket_cmd = function(cmd)
 
 end
 
--- get_variant determines the proxy variant, which is encoded in
+-- get_proxy_variant determines the proxy variant, which is encoded in
 -- the first letter of proxy_id.
-stats.get_variant = function(proxy_id)
+stats.get_proxy_variant = function(proxy_id)
 
-    local variant = "server"
+    local variants_map = { L = "listener", F = "frontend", B = "backend", S = "server" }
     local v = proxy_id:sub(1,1)
-    if v == "L" then
-        variant = "listener"
-    elseif v == "F" then
-        variant = "frontend"
-    elseif v == "B" then
-        variant = "backend"
-    end
-    return variant
+    return variants_map[v]
 
 end
 
@@ -48,7 +46,7 @@ stats.build_metrics_table = function (stats_raw)
         local f1, metric_type, metric_value = s:match("([^:]+):([^:]+:[^:]+):([^:]+)")
         if f1 then
             local proxy_id, _, metric_name = f1:match("([LFBS]%.[^.]+%.[^.]+)%.([^.]+)%.([^.]+).*")
-            local variant = stats.get_variant(proxy_id)
+            local variant = stats.get_proxy_variant(proxy_id)
 
             metrics[variant] = metrics[variant] or {}
             metrics[variant][proxy_id] = metrics[variant][proxy_id] or {}
@@ -64,9 +62,9 @@ stats.build_metrics_table = function (stats_raw)
 
 end
 
--- metrics is the function to serve rendered prometheus metrics
+-- stats.show_metrics is the function to serve rendered Prometheus metrics
 -- in response to a HTTP GET request.
-metrics = function(applet)
+stats.show_metrics = function(applet)
 
    local response = core.concat()
 
@@ -111,5 +109,5 @@ stats.updater = function()
 end
 
 core.register_task(stats.updater)
-core.register_service("metrics", "http", metrics)
+core.register_service("metrics", "http", stats.show_metrics)
 
