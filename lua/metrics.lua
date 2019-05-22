@@ -85,24 +85,26 @@ stats.show_metrics = function(applet)
 
 end
 
+stats.update = function()
+
+    local stats_raw, err = stats.socket_cmd("show stat typed\n")
+    if err == nil then
+        stats.metrics = stats.build_metrics_table(stats_raw)
+    end
+    return err
+
+end
 -- stats.updater updates stats.metrics
 -- table each refresh_interval seconds.
 stats.updater = function()
 
-    local stats_raw, err = stats.socket_cmd("show stat typed\n")
-    if err ~= nil then
-        core.log(core.err, "Error getting stats from the socket: "..err)
-    else
-        stats.metrics = stats.build_metrics_table(stats_raw)
-    end
+    stats.update()
 
     while true do
         core.sleep(stats.refresh_interval)
-        local stats_raw, err = stats.socket_cmd("show stat typed\n")
+        local err = stats.update()
         if err ~= nil then
             core.log(core.err, "Error getting stats from the socket: "..err)
-        else
-            stats.metrics = stats.build_metrics_table(stats_raw)
         end
     end
 
