@@ -1,5 +1,5 @@
 replicas: 1
-image: "anchorfree/haproxy-selfie:v0.3.5"
+image: "anchorfree/haproxy-selfie:v0.4.0"
 resources:
   limits:
     memory: "100Mi"
